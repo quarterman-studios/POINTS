@@ -1,8 +1,8 @@
 import { resolve } from '$app/paths';
 import {
-	VITE_PUBLIC_SUPABASE_URL,
-	VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-} from '$env/static/private';
+	PUBLIC_SUPABASE_URL,
+	PUBLIC_SUPABASE_PUBLISHABLE_KEY
+} from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
 
@@ -15,8 +15,8 @@ import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(
-		VITE_PUBLIC_SUPABASE_URL,
-		VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		PUBLIC_SUPABASE_URL,
+		PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {

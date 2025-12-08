@@ -8,12 +8,12 @@ export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) 
 	if (session) {
 		redirect(303, '/home');
 	}
-	
+
 	return { url: url.origin }
 }
 
 export const actions: Actions = {
-	default: async (event) => {
+	"magic-link-signin": async (event) => {
 		const {
 			url,
 			request,
@@ -22,6 +22,7 @@ export const actions: Actions = {
 
 		const formData = await request.formData();
 		const email = formData.get("email") as string;
+		const username = formData.get("username") as string;
 		const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 		if (!validEmail) {
@@ -35,11 +36,15 @@ export const actions: Actions = {
 		const { error } = await supabase.auth.signInWithOtp({
 			email,
 			options: {
+				data: {
+					username: username || null,
+				},
 				emailRedirectTo: `${url.origin}/auth/confirm`
 			},
 		});
 
 		if (error) {
+			console.error("Error sending magic link:", error.message);
 			return fail(400, {
 				success: false,
 				email,

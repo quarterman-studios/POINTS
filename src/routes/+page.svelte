@@ -1,16 +1,38 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import type { ActionData, SubmitFunction } from './$types';
+
+	interface Props {
+		form: ActionData;
+	}
+
+	let { form } = $props();
+
+	let loading = $state(false);
+
+	const handleSubmit: SubmitFunction = () => {
+		loading = true;
+		return async ({ update }) => {
+			update();
+			loading = false;
+		};
+	};
+</script>
+
 <h1>POINTS</h1>
 
 <h2>LEADERBOARD</h2>
 
-
-<form method="POST">
+<form method="POST" use:enhance={handleSubmit}>
+	<p>{'Sign in via magic link with your email below'}</p>
 	<label for="username">Username: </label>
 	<input name="username" id="username" type="text" />
 	<label for="email">Email: </label>
 	<input name="email" id="email" type="text" />
 	<label for="password">Password: </label>
 	<input name="password" id="password" type="password" required />
-	<button aria-label="Submit Details">Sign Up</button>
+	<button aria-label="Submit Details">{loading ? 'Loading...' : 'Send Magic Link'}</button>
+	<p>{form?.message}</p>
 </form>
 
 <style>

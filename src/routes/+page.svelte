@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { ActionData, SubmitFunction } from './$types';
+	import type { ActionData, PageData, SubmitFunction } from './$types';
+	import GoogleButton from '$lib/components/GoogleButton.svelte';
 
 	interface Props {
 		form: ActionData;
+		data: PageData;
 	}
 
 	let loading = $state(false);
 
-	let { form }: Props = $props();
+	let { form, data }: Props = $props();
 
 	const handleSubmit: SubmitFunction = () => {
 		loading = true;
@@ -16,6 +18,22 @@
 			update();
 			loading = false;
 		};
+	};
+
+	const handleGoogleSignIn = async () => {
+		loading = true;
+
+		const { error } = await data.supabase.auth.signInWithOAuth({
+			provider: 'google',
+			options: {
+				redirectTo: `${window.location.origin}/auth/confirm`
+			}
+		});
+
+		if (error) {
+			console.error('Error during Google sign-in:', error);
+			loading = false;
+		}
 	};
 
 	$inspect({ form });
@@ -33,6 +51,9 @@
 	<input name="email" id="email" type="text" />
 	<button aria-label="Submit Details">{loading ? 'Loading...' : 'Send Magic Link'}</button>
 	<p>{form?.message}</p>
+	<div class="google-div">
+		<GoogleButton {loading} onClick={handleGoogleSignIn} />
+	</div>
 </form>
 
 <style>
@@ -69,5 +90,12 @@
 		padding: 0.75rem 1.5rem;
 		font-size: 1rem;
 		cursor: pointer;
+	}
+
+	.google-div {
+		margin-top: 1rem;
+		display: flex;
+		justify-content: center;
+		width: 25%;
 	}
 </style>

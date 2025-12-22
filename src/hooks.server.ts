@@ -1,17 +1,9 @@
-import { resolve } from '$app/paths';
 import {
 	PUBLIC_SUPABASE_URL,
 	PUBLIC_SUPABASE_PUBLISHABLE_KEY
 } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
-
-// export const handle : Handle = async ({ event, resolve}) => {
-// 	if(event.url.pathname.startsWith("/custom")){
-// 		return new Response("This is a response from the handle function");
-// 	}
-// 	return await resolve(event);
-// }
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(
@@ -23,12 +15,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 					return event.cookies.getAll();
 				},
 				setAll(cookiesToSet) {
-					/**
-					 * Note: You have to add the `path` variable to the
-					 * set and remove method due to sveltekit's cookie API
-					 * requiring this to be set, setting the path to an empty string
-					 * will replicate previous/standard behavior (https://kit.svelte.dev/docs/types#public-types-cookies)
-					 */
 					cookiesToSet.forEach(({ name, value, options }) =>
 						event.cookies.set(name, value, { ...options, path: '/' })
 					);
@@ -44,13 +30,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	 */
 	event.locals.safeGetSession = async () => {
 		const {
-			data: { session }
-		} = await event.locals.supabase.auth.getSession();
-		if (!session) {
-			return { session: null, user: null };
-		}
-
-		const {
 			data: { user },
 			error
 		} = await event.locals.supabase.auth.getUser();
@@ -58,6 +37,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 			// JWT validation has failed
 			return { session: null, user: null };
 		}
+
+		const {
+			data: { session }
+		} = await event.locals.supabase.auth.getSession();
+		if (!session) {
+			return { session: null, user: null };
+		}
+
 
 		return { session, user };
 	};

@@ -9,6 +9,7 @@
 	}
 
 	let loading = $state(false);
+	let googleLoading = $state(false);
 
 	let { form, data }: Props = $props();
 
@@ -21,7 +22,7 @@
 	};
 
 	const handleGoogleSignIn = async () => {
-		loading = true;
+		googleLoading = true;
 
 		const { error } = await data.supabase.auth.signInWithOAuth({
 			provider: 'google',
@@ -50,9 +51,9 @@
 	<label for="email">Email: </label>
 	<input name="email" id="email" type="text" />
 	<button aria-label="Submit Details">{loading ? 'Loading...' : 'Send Magic Link'}</button>
-	<p>{form?.message}</p>
+	<p>{form?.message || form?.errors?.email}</p>
 	<div class="google-div">
-		<GoogleButton {loading} onClick={handleGoogleSignIn} />
+		<GoogleButton loading={googleLoading} onClick={handleGoogleSignIn} />
 	</div>
 </form>
 

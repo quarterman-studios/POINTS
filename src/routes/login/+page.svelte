@@ -50,6 +50,10 @@
 
 	<form method="POST" action="?/magic-link-signin" use:enhance={handleSubmit}>
 		<p>{'Sign in via magic link with your email below'}</p>
+
+		<!-- TODO: Make username compulsory and check if username already exists for new users. -->
+		<!-- TODO: Ask AI what to do if someone tries to sign in with your email from a different device -->
+
 		<label for="username">Username: </label>
 		<input name="username" id="username" type="text" />
 		<label for="email">Email: </label>

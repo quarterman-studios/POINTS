@@ -3,8 +3,8 @@
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 
-	let { data, form } = $props();
-	let { session, supabase } = $derived(data);
+	let { data } = $props();
+	let { session, userProfile, leaderboard } = $derived(data);
 
 	let loading = $state(false);
 	let signedIn = $derived(!!session);
@@ -17,11 +17,26 @@
 		};
 	};
 
+	$inspect(leaderboard);
 </script>
 
 <h1>POINTS</h1>
 
 <h2>LEADERBOARD</h2>
+
+<section class="leaderboard">
+	<h2>{session ? 'Your Rivals' : 'Top Players'}</h2>
+
+	<ul>
+		{#each leaderboard as player}
+			<li class="row {userProfile?.username === player.username ? 'highlight' : ''}">
+				<span class="rank">#{player.rank}</span>
+				<span class="name">{player.username}</span>
+				<span class="points">{player.points}</span>
+			</li>
+		{/each}
+	</ul>
+</section>
 
 {#if signedIn}
 	<form method="post" action="?/signout" use:enhance={handleSignOut}>
@@ -32,7 +47,6 @@
 {:else}
 	<button type="button" aria-label="Sign In" onclick={() => goto('/login')}>Sign In</button>
 {/if}
-
 
 <style lang="scss">
 	@use '../styles/variables' as *;
@@ -65,6 +79,22 @@
 
 		&:hover {
 			background-color: $color-accent-hover;
+		}
+	}
+
+	.row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.5rem 1rem;
+		border-bottom: 1px solid $text-secondary;
+
+		&.highlight {
+			background-color: rgba($POINTS-COLOUR, 0.2);
+		}
+
+		.rank, .name, .points {
+			flex: 1;
+			text-align: center;
 		}
 	}
 </style>

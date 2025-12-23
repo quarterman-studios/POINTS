@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data, form } = $props();
@@ -33,4 +34,6 @@
 			<button class="button block" disabled={loading}>Sign Out</button>
 		</div>
 	</form>
+
+	<button onclick={() => goto('/')}>Attack</button>
 </div>

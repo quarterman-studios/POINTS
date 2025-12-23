@@ -1,0 +1,57 @@
+/* src/styles/app.scss */
+@use 'variables'; // Import your DNA so we can use the colors/fonts
+
+// 1. The "Hard" Reset
+// Ensure padding/borders don't ruin width calculations
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+// Remove default browser margins that create weird white gaps
+body, h1, h2, h3, h4, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+// 2. The Baseline (The "Neon Dark" Look)
+body {
+  background-color: variables.$bg-app;        // Deep black
+  color: variables.$text-primary;             // White text
+  font-family: variables.$font-family-main;   // Inter font
+  line-height: 1.5;                 // Readable text spacing
+  min-height: 100vh;                // Full screen height
+  -webkit-font-smoothing: antialiased; // Makes text look thinner/cleaner on Mac
+}
+
+// 3. Element Defaults (Save time later)
+
+// Links should not be blue and underlined by default
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// Lists shouldn't have bullets (for Nav bars and Leaderboards)
+ul, ol {
+  list-style: none;
+  padding: 0;
+}
+
+// Images should behave nicely
+img {
+  max-width: 100%;
+  display: block; // Prevents tiny gaps below images
+}
+
+// Buttons shouldn't look like 1995 Windows buttons
+button {
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+}

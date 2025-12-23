@@ -1,102 +1,70 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import type { ActionData, PageData, SubmitFunction } from './$types';
-	import GoogleButton from '$lib/components/GoogleButton.svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
-	interface Props {
-		form: ActionData;
-		data: PageData;
-	}
+	let { data, form } = $props();
+	let { session, supabase } = $derived(data);
 
 	let loading = $state(false);
-	let googleLoading = $state(false);
+	let signedIn = $derived(!!session);
 
-	let { form, data }: Props = $props();
-
-	const handleSubmit: SubmitFunction = () => {
+	const handleSignOut: SubmitFunction = () => {
 		loading = true;
 		return async ({ update }) => {
-			update();
 			loading = false;
+			update();
 		};
 	};
 
-	const handleGoogleSignIn = async () => {
-		googleLoading = true;
-
-		const { error } = await data.supabase.auth.signInWithOAuth({
-			provider: 'google',
-			options: {
-				redirectTo: `${window.location.origin}/auth/confirm`
-			}
-		});
-
-		if (error) {
-			console.error('Error during Google sign-in:', error);
-			loading = false;
-		}
-	};
-
-	$inspect({ form });
 </script>
 
 <h1>POINTS</h1>
 
 <h2>LEADERBOARD</h2>
 
-<form method="POST" action="?/magic-link-signin" use:enhance={handleSubmit}>
-	<p>{'Sign in via magic link with your email below'}</p>
-	<label for="username">Username: </label>
-	<input name="username" id="username" type="text" />
-	<label for="email">Email: </label>
-	<input name="email" id="email" type="text" />
-	<button aria-label="Submit Details">{loading ? 'Loading...' : 'Send Magic Link'}</button>
-	<p>{form?.message || form?.errors?.email}</p>
-	<div class="google-div">
-		<GoogleButton loading={googleLoading} onClick={handleGoogleSignIn} />
-	</div>
-</form>
+{#if signedIn}
+	<form method="post" action="?/signout" use:enhance={handleSignOut}>
+		<button aria-label="Sign Out">{loading ? 'Signing Out...' : 'Sign Out'}</button>
+	</form>
 
-<style>
+	<button onclick={() => goto('/profile')}>Go to Profile</button>
+{:else}
+	<button type="button" aria-label="Sign In" onclick={() => goto('/login')}>Sign In</button>
+{/if}
+
+
+<style lang="scss">
+	@use '../styles/variables' as *;
+
 	h1 {
 		font-size: 3rem;
 		text-align: center;
 		margin-top: 2rem;
+		color: $text-primary;
 	}
 
 	h2 {
 		font-size: 2rem;
 		text-align: center;
 		margin-top: 1rem;
-		margin-bottom: 2rem;
-	}
-
-	form {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	label {
-		margin-right: 0.5rem;
-	}
-
-	input {
-		padding: 0.5rem;
-		font-size: 1rem;
+		color: $text-secondary;
 	}
 
 	button {
-		padding: 0.75rem 1.5rem;
+		display: block;
+		margin: 2rem auto;
+		padding: 0.5rem 1rem;
 		font-size: 1rem;
+		background-color: $POINTS-COLOUR;
+		color: $text-primary;
+		border: none;
+		border-radius: 5px;
 		cursor: pointer;
-	}
+		transition: background-color 0.3s;
 
-	.google-div {
-		margin-top: 1rem;
-		display: flex;
-		justify-content: center;
-		width: 25%;
+		&:hover {
+			background-color: $color-accent-hover;
+		}
 	}
 </style>

@@ -1,0 +1,62 @@
+@use "sass:color";
+// =========================================
+// 1. THE COLOR PALETTE
+// =========================================
+
+// The Foundation (High Contrast Dark Mode)
+// Using a very deep gray instead of pure black (#000) prevents eye strain
+// and allows shadows to actually be visible.
+$bg-app: #09090B;       // The main background behind everything
+$bg-card: #18181B;      // The color of cards/containers sitting on the background
+$bg-card-hover: #27272A; // Slightly lighter for hover states
+
+// Typography Colors
+$text-primary: #FFFFFF; // Pure white for main headings and point values
+$text-secondary: #A1A1AA; // Muted gray for subtitles, labels, and descriptions
+
+// THE ACCENT (Choose One!)
+// Based on your images, a striking "Electric Cyan" or "Neon Mint" works best.
+// It feels digital and cuts through the dark background.
+$POINTS-COLOUR: #FF0000; // Electric Red. 
+$color-accent-hover: color.adjust($POINTS-COLOUR, $lightness: -10%); // Slightly darker for button hovers
+
+// Game State Colors
+// Used for wins/losses in the battle log. They should feel neon.
+$color-success: #37e577; // Neon Green for gaining points
+$color-danger: #f65050;  // Neon Red/Coral for losing points/getting attacked
+
+
+// =========================================
+// 2. TYPOGRAPHY
+// =========================================
+
+// We will use 'Inter' from Google Fonts as it matches your reference images perfectly.
+// (You need to add the <link> to your app.html file first).
+$font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+// Font Weights
+$weight-regular: 400;
+$weight-medium: 500;
+$weight-bold: 700;
+
+
+// =========================================
+// 3. SHAPE & STRUCTURE
+// =========================================
+
+// Rounded Corners
+// Your references use very rounded corners.
+$radius-lg: 24px;   // For main dashboard cards (like Image 0)
+$radius-md: 12px;   // For standard buttons, inputs, list items
+$radius-sm: 8px;    // For smaller tags or elements
+
+// Spacing Grid (Base unit of 4px or 8px)
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+$space-xl: 32px;
+
+// Shadows
+// Very subtle shadows just to lift cards off the dark background
+$shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06);

@@ -1,5 +1,4 @@
 import { redirect } from '@sveltejs/kit';
-import type Page from '../+page.svelte';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession } }) => {

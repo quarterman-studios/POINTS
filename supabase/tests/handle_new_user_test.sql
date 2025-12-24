@@ -1,5 +1,8 @@
 BEGIN;
-SELECT plan(4);
+SELECT plan(5);
+
+-- check if function exists
+SELECT has_function('handle_new_user');
 
 -- create a user
 SET local role postgres;

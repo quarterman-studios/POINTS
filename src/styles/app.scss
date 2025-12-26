@@ -1,57 +1,25 @@
-/* src/styles/app.scss */
-@use 'variables'; // Import your DNA so we can use the colors/fonts
+@use '_variables' as *;
 
-// 1. The "Hard" Reset
-// Ensure padding/borders don't ruin width calculations
-*, *::before, *::after {
-  box-sizing: border-box;
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+* {
+	// Prevents the user from accidentally highlighting text while tapping fast
+	user-select: none;
+	// Removes the blue highlight when tapping a button on Android
+	-webkit-tap-highlight-color: transparent;
+
+	outline: 1px solid rgb(0, 21, 255); // Debugging tool to see element boundaries
 }
 
-// Remove default browser margins that create weird white gaps
-body, h1, h2, h3, h4, p, figure, blockquote, dl, dd {
-  margin: 0;
-}
-
-// 2. The Baseline (The "Neon Dark" Look)
+// 1. The Void
 body {
-  background-color: variables.$bg-app;        // Deep black
-  color: variables.$text-primary;             // White text
-  font-family: variables.$font-family-main;   // Inter font
-  line-height: 1.5;                 // Readable text spacing
-  min-height: 100vh;                // Full screen height
-  -webkit-font-smoothing: antialiased; // Makes text look thinner/cleaner on Mac
+	background-color: var(--bg-app);
+	color: var(--text-primary);
+	font-family: $font-stack;
+	-webkit-font-smoothing: antialiased; // Crisp text is mandatory for this look
+	line-height: 1.4;
 }
 
-// 3. Element Defaults (Save time later)
-
-// Links should not be blue and underlined by default
-a {
-  text-decoration: none;
-  color: inherit;
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-// Lists shouldn't have bullets (for Nav bars and Leaderboards)
-ul, ol {
-  list-style: none;
-  padding: 0;
-}
-
-// Images should behave nicely
-img {
-  max-width: 100%;
-  display: block; // Prevents tiny gaps below images
-}
-
-// Buttons shouldn't look like 1995 Windows buttons
-button {
-  border: none;
-  background: none;
-  font-family: inherit;
-  cursor: pointer;
-  color: inherit;
-}
+// 2. Global Button Reset (The "Pill" Look)

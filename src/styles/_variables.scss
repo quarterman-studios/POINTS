@@ -1,62 +1,134 @@
-@use "sass:color";
 // =========================================
-// 1. THE COLOR PALETTE
+// 1. ROOT VARIABLES (The Dynamic Layer)
 // =========================================
+// LIGHT MODE SCHEME
+:root {
+	// Brand Font (Neo-Brutalist)
+	--font-header: 'Roboto Mono', system-ui, sans-serif;
 
-// The Foundation (High Contrast Dark Mode)
-// Using a very deep gray instead of pure black (#000) prevents eye strain
-// and allows shadows to actually be visible.
-$bg-app: #09090B;       // The main background behind everything
-$bg-card: #18181B;      // The color of cards/containers sitting on the background
-$bg-card-hover: #27272A; // Slightly lighter for hover states
+	// --- COLORS ---
+	--bg-app: #ffffff;      // Pure White
+	--bg-surface: #f4f4f5;  // Zinc-100 (Subtle contrast for cards/panels)
+	--bg-surface-hover: #e4e4e7; // Zinc-200
 
-// Typography Colors
-$text-primary: #FFFFFF; // Pure white for main headings and point values
-$text-secondary: #A1A1AA; // Muted gray for subtitles, labels, and descriptions
+	// --- TEXT COLORS ---
+	// We use Zinc-950 for primary text instead of pure black 
+	// to reduce eye strain while maintaining high contrast.
+	--text-primary: #09090b; 
+	--text-secondary: #52525b; // Zinc-600
+	--text-muted: #a1a1aa;     // Zinc-400
+	--border-color: #e4e4e7;   // Zinc-200 (Subtle dividers)
 
-// THE ACCENT (Choose One!)
-// Based on your images, a striking "Electric Cyan" or "Neon Mint" works best.
-// It feels digital and cuts through the dark background.
-$POINTS-COLOUR: #FF0000; // Electric Red. 
-$color-accent-hover: color.adjust($POINTS-COLOUR, $lightness: -10%); // Slightly darker for button hovers
+	// --- ACCENTS ---
+	--color-accent: #ff00c3; // Hot Pink
+	--color-accent-text: #ffffff; // White text reads better on Hot Pink
+	--color-accent-hover: #c00086; // A slightly darker pink for hover states
 
-// Game State Colors
-// Used for wins/losses in the battle log. They should feel neon.
-$color-success: #37e577; // Neon Green for gaining points
-$color-danger: #f65050;  // Neon Red/Coral for losing points/getting attacked
+	--color-success: #16a34a; // Green-600 (Darker for visibility on white)
+	--color-danger: #dc2626;  // Red-600
 
+	// --- SAFE AREAS ---
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+	--safe-left: env(safe-area-inset-left, 0px);
+	--safe-right: env(safe-area-inset-right, 0px);
+}
 
 // =========================================
-// 2. TYPOGRAPHY
+// 2. SCSS HELPERS (The Static Layer)
 // =========================================
+// (Unchanged: Layout and spacing remains consistent across themes)
 
-// We will use 'Inter' from Google Fonts as it matches your reference images perfectly.
-// (You need to add the <link> to your app.html file first).
-$font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+// --- SPACING ---
+$space-2xs: 0.25rem; 
+$space-xs: 0.5rem; 
+$space-sm: 0.75rem; 
+$space-md: 1rem; 
+$space-lg: 1.5rem; 
+$space-xl: 2.5rem; 
+$space-2xl: 4rem; 
 
-// Font Weights
+// --- LAYOUT ---
+$width-max: 1200px;
+$header-height: 3.5rem;
+
+// --- SHAPES ---
+$radius-sm: 0.375rem; 
+$radius-md: 0.75rem; 
+$radius-pill: 9999px;
+
+// --- TOUCH TARGETS ---
+$touch-target-min: 2.75rem;
+
+// --- TYPOGRAPHY ---
+$font-stack: 'Space Mono', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 $weight-regular: 400;
 $weight-medium: 500;
 $weight-bold: 700;
 
+// =========================================
+// 3. MIXINS (Shortcuts)
+// =========================================
+
+@mixin touch-friendly {
+	min-height: $touch-target-min;
+	min-width: $touch-target-min;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin safe-padding {
+	padding-top: var(--safe-top);
+	padding-bottom: var(--safe-bottom);
+	padding-left: var(--safe-left);
+	padding-right: var(--safe-right);
+}
 
 // =========================================
-// 3. SHAPE & STRUCTURE
+// 4. GLOBAL STYLES
 // =========================================
 
-// Rounded Corners
-// Your references use very rounded corners.
-$radius-lg: 24px;   // For main dashboard cards (like Image 0)
-$radius-md: 12px;   // For standard buttons, inputs, list items
-$radius-sm: 8px;    // For smaller tags or elements
+.btn-primary {
+	font-family: 'Space Grotesk', $font-stack;
+	background-color: var(--color-accent);
+	color: var(--color-accent-text);
+	font-weight: $weight-bold;
+	border-radius: $radius-sm; 
+	padding: 8px 20px;
+	font-size: 14px;
+	border: none;
+	transition:
+		transform 0.1s ease,
+		filter 0.2s;
 
-// Spacing Grid (Base unit of 4px or 8px)
-$space-xs: 4px;
-$space-sm: 8px;
-$space-md: 16px;
-$space-lg: 24px;
-$space-xl: 32px;
+	&:hover {
+		// Since the bg is light now, brightness up might wash it out.
+		// Usually, we darken slightly on light mode, but brightness works if the pink is deep enough.
+		filter: brightness(1.1); 
+	}
 
-// Shadows
-// Very subtle shadows just to lift cards off the dark background
-$shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	&:active {
+		transform: scale(0.96); 
+	}
+}
+
+.btn-text {
+	font-family: $font-stack;
+	background: none;
+	border: none;
+	color: var(--text-secondary);
+	letter-spacing: 0.01rem;
+	font-size: 1rem;
+	cursor: pointer;
+	padding: 0 4px;
+	transition: 
+		color 0.2s,
+		text-decoration 0.2s;
+
+	&:hover {
+		// This color-mix works great on light mode too
+		color: color-mix(in srgb, var(--text-secondary), var(--color-accent) 50%);
+		text-decoration: underline;
+	}
+}

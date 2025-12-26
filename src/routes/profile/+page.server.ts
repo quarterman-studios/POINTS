@@ -8,16 +8,25 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
         redirect(303, '/');
     }
 
-    const { data: profileData, error } = await supabase
-        .from('players')
+    const { data: userState, error } = await supabase
+        .from('game_state')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
-    return { session, profileData };
+    if (error || !userState) {
+        throw redirect(303, '/auth/error?message=Profile data not found');
+    }
+
+    const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('username, points, rank')
+        .eq('id', session.user.id)
+        .single();
+
+    return { session, userState, userProfile };
 
 }
-
 
 export const actions = {
     signout: async ({ locals: { supabase, safeGetSession } }) => {
@@ -25,7 +34,7 @@ export const actions = {
 
         if (session) {
             await supabase.auth.signOut();
-            redirect(303, '/');
         }
     },
+
 }

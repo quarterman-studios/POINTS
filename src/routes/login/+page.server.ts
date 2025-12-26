@@ -56,5 +56,13 @@ export const actions: Actions = {
 			email,
 			message: "Check your email for the magic link to log in!"
 		}
-	}
+	},
+
+	signout: async ({ locals: { supabase, safeGetSession } }) => {
+		const { session } = await safeGetSession();
+
+		if (session) {
+			await supabase.auth.signOut();
+		}
+	},
 }

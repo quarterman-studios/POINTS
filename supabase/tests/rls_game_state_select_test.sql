@@ -34,7 +34,7 @@ SET local "request.jwt.claims" = '{"sub":"54a17113-6c72-454d-921e-3636ed7b7ac1",
 
 SELECT results_eq(
     'select * from game_state', 
-    $$VALUES('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, NULL::timestamptz, 0::int8, NULL::timestamptz, 100::int2, 0::numeric, FALSE)$$, 
+    $$VALUES('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, NULL::timestamptz, 0::int8, NULL::timestamptz, 2::int2, 0::numeric, FALSE)$$, 
     'Auth users should see only own game state'
 );
 

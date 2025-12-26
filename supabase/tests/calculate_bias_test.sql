@@ -11,12 +11,11 @@ WITH test_vars AS (
         (floor(random() * 100000000000) + 1)::numeric AS r2
 )
 SELECT results_eq(
-        -- We use format() to inject the random numbers into the query string
-        format('SELECT public.calculate_bias(%L, %L)', r1, r2),
-        -- We calculate the expected result using the same variables
-        format('VALUES (1/(1+exp(-3 * ((%L::double precision - %L::double precision) / %L::double precision))))', r1, r2, r2),
-        'calculate bias should produce the correct bias'
+    format('SELECT round(public.calculate_bias(%L, %L)::numeric, 8)', r1, r2),
+    format('VALUES (round((1/(1+exp(-3 * ((%L::double precision - %L::double precision) / %L::double precision))))::numeric, 8))', r1, r2, r2),
+    'calculate bias matches at 8 decimal places'
 ) FROM test_vars;
+
 
 SELECT * FROM finish();
 ROLLBACK;

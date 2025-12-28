@@ -68,7 +68,7 @@
 
 <div class="app-container">
 	<aside class="sidebar">
-		<div class="logo">P.</div>
+		<div class="logo">"P"</div>
 
 		<nav class="nav-links">
 			<button class={`nav-btn ${isActive('home')}`} onclick={() => goto('/')} aria-label="Home">
@@ -188,8 +188,9 @@
 		height: 95vh; // Full height
 
 		.logo {
+			font-family: var(--font-header), sans-serif;
 			font-weight: $weight-bold;
-			font-size: 24px;
+			font-size: 1.5rem;
 			margin-bottom: $space-2xl;
 			color: var(--color-accent);
 		}
@@ -206,7 +207,7 @@
 			border: none;
 			color: var(--text-secondary);
 			cursor: pointer;
-			padding: 10px;
+			padding: $space-sm;
 			border-radius: $radius-sm;
 			transition: all 0.2s;
 

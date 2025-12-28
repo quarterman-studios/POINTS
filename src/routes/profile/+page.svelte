@@ -64,7 +64,7 @@
 	</section>
 
 	<div class="floating-action">
-		<button class="btn-battle-log">View Battle Log</button>
+		<button class="btn-battle-log" onclick={() => goto('/battle-log')}>View Battle Log</button>
 	</div>
 </main>
 
@@ -191,20 +191,12 @@
 	}
 
 	.btn-battle-log {
-		background-color: var(--text-secondary);
-		color: var(--bg-app);
-		font-weight: var(--weight-bold);
-		border: none;
-		padding: 12px 32px;
-		border-radius: $radius-pill;
-		font-size: 14px;
+		@extend .btn-primary;
 		cursor: pointer;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 		transition: all 0.2s;
 
 		&:hover {
 			background-color: var(--text-primary);
-			transform: scale(1.05);
 		}
 	}
 </style>

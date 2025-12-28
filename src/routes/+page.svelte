@@ -147,12 +147,12 @@
 		display: flex;
 		flex-direction: column;
 		.label {
-			font-size: 11px;
+			font-size: 0.8rem;
 			color: var(--text-secondary);
 			text-transform: uppercase;
 		}
 		.value {
-			font-size: 20px;
+			font-size: 1.25rem;
 			font-weight: $weight-bold;
 			color: var(--text-primary);
 		}
@@ -161,25 +161,13 @@
 	.actions {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: $space-xs;
 		align-items: flex-end;
 	}
 
 	// --- LIST CONTAINER ---
 	.list-container {
 		position: relative;
-	}
-
-	.list-header {
-		display: flex;
-		justify-content: space-between;
-		color: var(--text-secondary);
-		font-size: 12px;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-		padding-bottom: $space-sm;
-		border-bottom: 1px solid var(--border-color);
-		margin-bottom: $space-xs;
 	}
 
 	// --- THE ROW ---
@@ -202,7 +190,6 @@
 
 		&.current-user {
 			border-left: 2px solid var(--color-accent);
-			padding-left: 8px;
 			background: linear-gradient(90deg, rgba(var(--color-accent), 0.05) 0%, transparent 100%);
 		}
 	}
@@ -211,19 +198,19 @@
 	.right-section {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: $space-sm;
 	}
 
 	.rank {
 		color: var(--text-secondary);
-		width: 24px;
+		width: $space-xl;
 		font-variant-numeric: tabular-nums;
-		font-size: 14px;
+		font-size: 1rem;
 	}
 
 	.avatar-circle {
-		width: 32px;
-		height: 32px;
+		width: $space-xl;
+		height: $space-xl;
 		border-radius: 50%;
 		background-color: var(--bg-surface);
 		border: 1px solid var(--border-color);
@@ -232,11 +219,11 @@
 	.info {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: $space-xs;
 
 		.username {
 			font-weight: $weight-medium;
-			font-size: 15px;
+			font-size: 1rem;
 		}
 	}
 

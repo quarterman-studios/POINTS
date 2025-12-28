@@ -12,7 +12,16 @@ WITH test_vars AS (
 )
 SELECT results_eq(
     format('SELECT round(public.calculate_bias(%L, %L)::numeric, 8)', r1, r2),
-    format('VALUES (round((1/(1+exp(-3 * ((%L::double precision - %L::double precision) / %L::double precision))))::numeric, 8))', r1, r2, r2),
+    format($$
+      VALUES (
+        round(
+          (1.0 / (1.0 + exp(-3 * LEAST(
+            ((%L::float - %L::float) / %L::float), 
+            5.0
+          ))))::numeric, 
+        8)
+      )
+    $$, r1, r2, r2),
     'calculate bias matches at 8 decimal places'
 ) FROM test_vars;
 

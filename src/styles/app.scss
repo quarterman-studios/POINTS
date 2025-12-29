@@ -1,0 +1,25 @@
+@use '_variables' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+* {
+	// Prevents the user from accidentally highlighting text while tapping fast
+	user-select: none;
+	// Removes the blue highlight when tapping a button on Android
+	-webkit-tap-highlight-color: transparent;
+
+	// outline: 1px solid rgb(0, 21, 255); // Debugging tool to see element boundaries
+}
+
+// 1. The Void
+body {
+	background-color: var(--bg-app);
+	color: var(--text-primary);
+	font-family: $font-stack;
+	-webkit-font-smoothing: antialiased; // Crisp text is mandatory for this look
+	line-height: 1.4;
+}
+
+// 2. Global Button Reset (The "Pill" Look)

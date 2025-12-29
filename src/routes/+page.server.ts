@@ -1,61 +1,63 @@
-import { fail, redirect, type Actions } from "@sveltejs/kit"
-import type Page from "./+page.svelte";
-import type { PageServerLoad } from "./$types";
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url, locals: { safeGetSession } }) => {
+export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession } }) => {
 	const { session } = await safeGetSession();
 
-	if (session) {
-		redirect(303, '/home');
-	}
+	const leaderboardLimit = 10;
 
-	return { url: url.origin }
-}
-
-export const actions: Actions = {
-	"magic-link-signin": async (event) => {
-		const {
-			url,
-			request,
-			locals: { supabase }
-		} = event;
-
-		const formData = await request.formData();
-		const email = formData.get("email") as string;
-		const username = formData.get("username") as string;
-		const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-		if (!validEmail) {
-			return fail(400, {
-				errors: {
-					email: "Please enter a valid email address."
-				}
-			});
-		}
-
-		const { error } = await supabase.auth.signInWithOtp({
-			email,
-			options: {
-				data: {
-					username: username || null,
-				},
-				emailRedirectTo: `${url.origin}/auth/confirm`
-			},
-		});
-
-		if (error) {
-			console.error("Error sending magic link:", error.message);
-			return fail(400, {
-				success: false,
-				email,
-				message: "There was an issue, please contact support."
-			})
-		}
+	if (!session) {
+		//Display generic leaderboard
+		const { data: leaderboard } = await supabase
+			.from('profiles')
+			.select('username, points, rank')
+			.order('points', { ascending: false })
+			.limit(leaderboardLimit+1); // +1 to fill the space of the user
 
 		return {
-			success: true,
-			email,
-			message: "Check your email for the magic link to log in!"
-		}
+			session: null,
+			leaderboard
+		};
+
 	}
+
+	//Display leaderboard at user's position
+	const { data: userProfile } = await supabase
+		.from('profiles')
+		.select('rank, username, points')
+		.eq('id', session.user.id)
+		.single();
+
+	if (!userProfile) {
+		throw redirect(303, 'auth/error?message=Profile not found');
+	}
+
+	// 2. Fetch "Neighbors" (e.g., 5 above and 5 below)
+	const minRank = userProfile.rank - 5;
+	const maxRank = userProfile.rank + 5;
+
+	const { data: leaderboard } = await supabase
+		.from('profiles')
+		.select('username, points, rank')
+		.gte('rank', minRank) // Greater than or equal to min
+		.lte('rank', maxRank) // Less than or equal to max
+		.limit(leaderboardLimit+1) // +1 to account for the user themselves
+		.order('rank', { ascending: true });
+
+	return {
+		session,
+		userProfile,
+		leaderboard
+	};
+}
+
+
+export const actions = {
+	signout: async ({ locals: { supabase, safeGetSession } }) => {
+		const { session } = await safeGetSession();
+
+		if (session) {
+			await supabase.auth.signOut();
+		}
+	},
 }

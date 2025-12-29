@@ -1,102 +1,234 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import type { ActionData, PageData, SubmitFunction } from './$types';
-	import GoogleButton from '$lib/components/GoogleButton.svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
-	interface Props {
-		form: ActionData;
-		data: PageData;
-	}
+	let { data } = $props();
+	let { session, userProfile, leaderboard } = $derived(data);
 
 	let loading = $state(false);
-	let googleLoading = $state(false);
+	let signedIn = $derived(!!session);
 
-	let { form, data }: Props = $props();
-
-	const handleSubmit: SubmitFunction = () => {
+	const handleSignOut: SubmitFunction = () => {
 		loading = true;
 		return async ({ update }) => {
-			update();
 			loading = false;
+			update();
 		};
 	};
-
-	const handleGoogleSignIn = async () => {
-		googleLoading = true;
-
-		const { error } = await data.supabase.auth.signInWithOAuth({
-			provider: 'google',
-			options: {
-				redirectTo: `${window.location.origin}/auth/confirm`
-			}
-		});
-
-		if (error) {
-			console.error('Error during Google sign-in:', error);
-			loading = false;
-		}
-	};
-
-	$inspect({ form });
 </script>
 
-<h1>POINTS</h1>
+<div class="page-container">
+	{#if !signedIn}
+		<section class="hero">
+			<h1>"POINTS"</h1>
 
-<h2>LEADERBOARD</h2>
+			<button class="btn-primary btn-large" onclick={() => goto('/login')}> SIGN IN </button>
+		</section>
+	{/if}
 
-<form method="POST" action="?/magic-link-signin" use:enhance={handleSubmit}>
-	<p>{'Sign in via magic link with your email below'}</p>
-	<label for="username">Username: </label>
-	<input name="username" id="username" type="text" />
-	<label for="email">Email: </label>
-	<input name="email" id="email" type="text" />
-	<button aria-label="Submit Details">{loading ? 'Loading...' : 'Send Magic Link'}</button>
-	<p>{form?.message || form?.errors?.email}</p>
-	<div class="google-div">
-		<GoogleButton loading={googleLoading} onClick={handleGoogleSignIn} />
-	</div>
-</form>
+	{#if signedIn}
+		<section class="title-section">
+			<h2>LEADERBOARD</h2>
+		</section>
+		<section class="user-dashboard">
+			<div class="stat-card">
+				<span class="label">Rank</span>
+				<span class="value">#{userProfile?.rank ?? '-'}</span>
+			</div>
+			<div class="stat-card">
+				<span class="label">Points</span>
+				<span class="value">{userProfile?.points ?? 0}</span>
+			</div>
 
-<style>
-	h1 {
-		font-size: 3rem;
+			<div class="actions">
+				<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
+			</div>
+		</section>
+	{/if}
+
+	<section class="list-container">
+		<div class="rows">
+			{#each leaderboard as player}
+				{@const isMe = userProfile?.username === player.username}
+
+				<div class="row {isMe ? 'current-user' : ''}">
+					<div class="left-section">
+						<span class="rank">#{player.rank}</span>
+						<div class="avatar-circle"></div>
+
+						<div class="info">
+							<span class="username">{player.username}</span>
+						</div>
+					</div>
+
+					<div class="right-section">
+						<span class="points-value">{player.points}</span>
+						{#if signedIn && !isMe}
+							<button class="btn-action">Attack</button>
+						{/if}
+					</div>
+				</div>
+			{/each}
+		</div>
+	</section>
+</div>
+
+<style lang="scss">
+	@use '../styles/variables' as *;
+
+	// Global Page Layout
+	.page-container {
+		max-width: 480px;
+		margin: 0 auto;
+		padding: $space-lg $space-md;
+		min-height: 100vh;
+		font-family: $font-stack;
+		color: var(--text-primary);
+	}
+
+	// --- HERO SECTION (Public) ---
+	.hero {
 		text-align: center;
-		margin-top: 2rem;
+		// Uses the NEW variable for proper separation
+		margin-bottom: $space-xl;
+		padding-top: $space-lg;
+
+		h1 {
+			font-family: var(--font-header), sans-serif;
+			font-size: 6rem;
+			font-weight: $weight-bold;
+			margin-bottom: $space-sm;
+			letter-spacing: -0.05rem;
+			color: var(--text-primary);
+		}
+
+		.btn-large {
+			width: 30%;
+			padding: 1em;
+			font-size: 1em;
+		}
 	}
 
-	h2 {
-		font-size: 2rem;
-		text-align: center;
-		margin-top: 1rem;
-		margin-bottom: 2rem;
-	}
-
-	form {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	label {
-		margin-right: 0.5rem;
-	}
-
-	input {
-		padding: 0.5rem;
-		font-size: 1rem;
-	}
-
-	button {
-		padding: 0.75rem 1.5rem;
-		font-size: 1rem;
+	.btn-action {
+		@extend .btn-primary;
+		padding: $space-xs $space-sm;
+		font-size: 0.875rem;
+		border-radius: $radius-pill;
 		cursor: pointer;
 	}
 
-	.google-div {
-		margin-top: 1rem;
+	.title-section {
 		display: flex;
 		justify-content: center;
-		width: 25%;
+		margin-bottom: $space-md;
+		h2 {
+			font-size: 1.5rem;
+			font-weight: $weight-bold;
+			letter-spacing: -0.05rem;
+			color: var(--text-primary);
+		}
+	}
+
+	// --- DASHBOARD (Private) ---
+	.user-dashboard {
+		display: grid;
+		grid-template-columns: 1fr 1fr auto;
+		gap: $space-md;
+		margin-bottom: $space-xl; // Uses NEW variable
+		align-items: center;
+		background-color: var(--bg-surface);
+		padding: $space-md;
+		border-radius: $radius-md;
+		border: 1px solid var(--border-color);
+	}
+
+	.stat-card {
+		display: flex;
+		flex-direction: column;
+		.label {
+			font-size: 0.8rem;
+			color: var(--text-secondary);
+			text-transform: uppercase;
+		}
+		.value {
+			font-size: 1.25rem;
+			font-weight: $weight-bold;
+			color: var(--text-primary);
+		}
+	}
+
+	.actions {
+		display: flex;
+		flex-direction: column;
+		gap: $space-xs;
+		align-items: flex-end;
+	}
+
+	// --- LIST CONTAINER ---
+	.list-container {
+		position: relative;
+	}
+
+	// --- THE ROW ---
+	.row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: $space-sm;
+		border: 1px solid var(--border-color);
+		border-radius: $radius-sm;
+		margin-bottom: $space-sm;
+
+		transition: all 0.2s;
+
+		&:hover {
+			background-color: var(--bg-surface-hover);
+		}
+
+		transition: background-color 0.2s;
+
+		&.current-user {
+			border-left: 2px solid var(--color-accent);
+			background: linear-gradient(90deg, rgba(var(--color-accent), 0.05) 0%, transparent 100%);
+		}
+	}
+
+	.left-section,
+	.right-section {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+	}
+
+	.rank {
+		color: var(--text-secondary);
+		width: $space-xl;
+		font-variant-numeric: tabular-nums;
+		font-size: 1rem;
+	}
+
+	.avatar-circle {
+		width: $space-xl;
+		height: $space-xl;
+		border-radius: 50%;
+		background-color: var(--bg-surface);
+		border: 1px solid var(--border-color);
+	}
+
+	.info {
+		display: flex;
+		flex-direction: column;
+		gap: $space-xs;
+
+		.username {
+			font-weight: $weight-medium;
+			font-size: 1rem;
+		}
+	}
+
+	.points-value {
+		font-weight: var(--weight-medium);
+		font-variant-numeric: tabular-nums;
 	}
 </style>

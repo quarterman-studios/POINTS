@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	}
 
 	const code = url.searchParams.get('code');
-	const next = url.searchParams.get('next') ?? '/home'
+	const next = url.searchParams.get('next') ?? '/'
 
 	/**
 	 * Clean up the redirect URL by deleting the Auth flow parameters.

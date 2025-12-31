@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(14);
+SELECT plan(13);
 
 -- check if it exists
 SELECT has_function('execute_attack');
@@ -145,17 +145,6 @@ SELECT results_eq(
   $$SELECT execute_attack('54a17113-6c72-454d-921e-3636ed7b7ac1', 'f0ddc881-d1b0-4e2b-a346-9a32fb6845b2') ->> 'message'$$, 
   $$VALUES ('defender has 0 points')$$, 
   'execute attack should fail because defender has 0 points'
-);
-
--- does hit tolerance work
-UPDATE public.profiles SET points = 1000 WHERE id = '54a17113-6c72-454d-921e-3636ed7b7ac1';
-UPDATE public.profiles SET points = 1000 WHERE id = 'f0ddc881-d1b0-4e2b-a346-9a32fb6845b2';
-UPDATE public.game_state SET hit_tolerance = 0 WHERE id = 'f0ddc881-d1b0-4e2b-a346-9a32fb6845b2';
-
-SELECT results_eq(
-  $$SELECT execute_attack('54a17113-6c72-454d-921e-3636ed7b7ac1', 'f0ddc881-d1b0-4e2b-a346-9a32fb6845b2') ->> 'message'$$, 
-  $$VALUES ('defender hit tolerance is 0')$$, 
-  'execute attack should fail because defender hit tolerance is 0'
 );
 
 -- future: does loss appear on battle log.

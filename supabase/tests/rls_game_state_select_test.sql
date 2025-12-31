@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(3);
+SELECT plan(4);
 
 -- create a user
 SET local role postgres;
@@ -33,9 +33,14 @@ SET local role authenticated;
 SET local "request.jwt.claims" = '{"sub":"54a17113-6c72-454d-921e-3636ed7b7ac1", "role": "authenticated" }';
 
 SELECT results_eq(
-    'select * from game_state', 
-    $$VALUES('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, NULL::timestamptz, 0::int8, NULL::timestamptz, 0::numeric, FALSE)$$, 
+    'select id, updated_at, last_preroll_timestamp, streak, can_preroll from game_state', 
+    $$VALUES('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, now()::timestamptz, now()::timestamptz, 0::numeric, FALSE)$$, 
     'Auth users should see only own game state'
+);
+
+SELECT is_empty(
+    $$ SELECT 1 FROM public.game_state WHERE last_preroll_value < 0 OR last_preroll_value > 100 $$,
+    'All rolls in game_state should be between 0 and 100'
 );
 
 -- sign out, and test to see whether anon can see user's game_state

@@ -30,6 +30,7 @@
 	{#if signedIn}
 		<section class="title-section">
 			<h2>LEADERBOARD</h2>
+			<p class="label">Steal points from other players</p>
 		</section>
 		<section class="user-dashboard">
 			<div class="stat-card">
@@ -41,9 +42,7 @@
 				<span class="value">{userProfile?.points ?? 0}</span>
 			</div>
 
-			<div class="actions">
-				<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
-			</div>
+			<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
 		</section>
 	{/if}
 
@@ -65,7 +64,7 @@
 					<div class="right-section">
 						<span class="points-value">{player.points}</span>
 						{#if signedIn && !isMe}
-							<button class="btn-action">Attack</button>
+							<button class="btn-action">STEAL</button>
 						{/if}
 					</div>
 				</div>
@@ -75,99 +74,153 @@
 </div>
 
 <style lang="scss">
+	// Import variables AND the new mixins file
 	@use '../styles/variables' as *;
+	@use '../styles/mixins' as *;
 
-	// Global Page Layout
+	// --- GLOBAL PAGE LAYOUT ---
 	.page-container {
-		max-width: 480px;
-		margin: 0 auto;
-		padding: $space-lg $space-md;
+		width: 100%; // Default: take up full width on mobile
+		padding: $space-md; // Default: smaller padding for mobile
 		min-height: 100vh;
 		font-family: $font-stack;
 		color: var(--text-primary);
+		margin: 0 auto;
+
+		// On Tablet/Desktop: Restrict width and increase padding
+		@include respond-to('tablet') {
+			max-width: calc($width-max / 16 * 10);
+			padding: $space-lg;
+		}
 	}
 
 	// --- HERO SECTION (Public) ---
 	.hero {
 		text-align: center;
-		// Uses the NEW variable for proper separation
 		margin-bottom: $space-xl;
-		padding-top: $space-lg;
+		padding-top: $space-xl; // Give it breathing room on mobile
 
 		h1 {
 			font-family: var(--font-header), sans-serif;
-			font-size: 6rem;
 			font-weight: $weight-bold;
-			margin-bottom: $space-sm;
 			letter-spacing: -0.05rem;
 			color: var(--text-primary);
+			margin-bottom: $space-md;
+
+			// RESPONSIVE TYPOGRAPHY
+			font-size: 3.5rem; // Mobile size
+			line-height: 1.1;
+
+			@include respond-to('tablet') {
+				font-size: 6rem; // Original massive size for desktop
+			}
 		}
 
+		// RESPONSIVE BUTTON
 		.btn-large {
-			width: 30%;
+			width: 100%; // Mobile: Full width for easy thumb reach
 			padding: 1em;
 			font-size: 1em;
+
+			@include respond-to('tablet') {
+				width: auto; // Desktop: Let content define width
+				min-width: 200px;
+			}
 		}
 	}
 
 	.btn-action {
 		@extend .btn-primary;
 		padding: $space-xs $space-sm;
-		font-size: 0.875rem;
+		font-size: 0.75rem; // Slightly smaller on mobile
 		border-radius: $radius-pill;
 		cursor: pointer;
+		white-space: nowrap; // Prevent button text wrapping
+
+		@include respond-to('tablet') {
+			font-size: 0.875rem;
+		}
 	}
 
 	.title-section {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		align-items: center;
 		margin-bottom: $space-md;
+		text-align: center;
+
 		h2 {
-			font-size: 1.5rem;
+			font-size: 1.25rem;
 			font-weight: $weight-bold;
 			letter-spacing: -0.05rem;
 			color: var(--text-primary);
+			margin-top: $space-sm;
+
+			@include respond-to('tablet') {
+				font-size: 1.5rem;
+			}
+		}
+
+		.label {
+			font-size: 0.75rem;
+			color: var(--text-secondary);
+			text-transform: uppercase;
+
+			@include respond-to('tablet') {
+				font-size: 0.875rem;
+			}
 		}
 	}
 
 	// --- DASHBOARD (Private) ---
 	.user-dashboard {
-		display: grid;
-		grid-template-columns: 1fr 1fr auto;
-		gap: $space-md;
-		margin-bottom: $space-xl; // Uses NEW variable
-		align-items: center;
+		// MOBILE DEFAULT: Stack vertically
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+
+		margin-bottom: $space-xl;
 		background-color: var(--bg-surface);
 		padding: $space-md;
 		border-radius: $radius-md;
 		border: 1px solid var(--border-color);
+
+		// TABLET+: Switch to Grid
+		@include respond-to('tablet') {
+			display: grid;
+			grid-template-columns: 1fr 1fr auto;
+			align-items: center;
+		}
 	}
 
 	.stat-card {
 		display: flex;
 		flex-direction: column;
+		// Mobile: Center text for impact
+		align-items: center;
+
 		.label {
 			font-size: 0.8rem;
 			color: var(--text-secondary);
 			text-transform: uppercase;
 		}
 		.value {
-			font-size: 1.25rem;
+			font-size: 1.3rem; // Bigger numbers are good on mobile
 			font-weight: $weight-bold;
 			color: var(--text-primary);
 		}
-	}
 
-	.actions {
-		display: flex;
-		flex-direction: column;
-		gap: $space-xs;
-		align-items: flex-end;
+		@include respond-to('tablet') {
+			font-size: 1.5rem;
+			align-items: flex-start; // Reset to left align on desktop
+		}
 	}
 
 	// --- LIST CONTAINER ---
 	.list-container {
 		position: relative;
+		height: 55vh; // Fixed height for scrollable area
+		overflow-y: auto;
 	}
 
 	// --- THE ROW ---
@@ -179,14 +232,12 @@
 		border: 1px solid var(--border-color);
 		border-radius: $radius-sm;
 		margin-bottom: $space-sm;
-
+		gap: $space-sm; // Ensure space between left/right sections
 		transition: all 0.2s;
 
 		&:hover {
 			background-color: var(--bg-surface-hover);
 		}
-
-		transition: background-color 0.2s;
 
 		&.current-user {
 			border-left: 2px solid var(--color-accent);
@@ -194,41 +245,88 @@
 		}
 	}
 
-	.left-section,
+	.left-section {
+		display: flex;
+		align-items: center;
+		gap: $space-sm;
+		min-width: 0; // Fixes flexbox text overflow issues
+	}
+
 	.right-section {
 		display: flex;
 		align-items: center;
 		gap: $space-sm;
+		flex-shrink: 0; // Prevents points/button from squishing
 	}
 
 	.rank {
 		color: var(--text-secondary);
-		width: $space-xl;
+		width: 1.5rem; // Reduce width slightly on mobile
 		font-variant-numeric: tabular-nums;
-		font-size: 1rem;
+		font-size: 0.875rem;
+
+		@include respond-to('tablet') {
+			width: $space-xl;
+			font-size: 1rem;
+		}
 	}
 
 	.avatar-circle {
-		width: $space-xl;
-		height: $space-xl;
+		// Mobile: Smaller avatar
+		width: 2rem;
+		height: 2rem;
 		border-radius: 50%;
 		background-color: var(--bg-surface);
 		border: 1px solid var(--border-color);
+		flex-shrink: 0;
+
+		@include respond-to('tablet') {
+			width: $space-xl; // 2.5rem
+			height: $space-xl;
+		}
 	}
 
 	.info {
 		display: flex;
 		flex-direction: column;
-		gap: $space-xs;
+		gap: 0;
+		overflow: hidden; // Handle long usernames
 
 		.username {
 			font-weight: $weight-medium;
-			font-size: 1rem;
+			font-size: 0.875rem;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis; // "Userna..."
+
+			@include respond-to('tablet') {
+				font-size: 1rem;
+			}
 		}
 	}
 
 	.points-value {
-		font-weight: var(--weight-medium);
+		font-weight: $weight-medium; // corrected var usage
 		font-variant-numeric: tabular-nums;
+		font-size: 0.875rem;
+
+		@include respond-to('tablet') {
+			font-size: 1rem;
+		}
+	}
+
+	// Helper button text style
+	.btn-text {
+		font-family: $font-stack;
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		font-size: 0.875rem;
+		cursor: pointer;
+
+		&:hover {
+			color: var(--text-primary);
+			text-decoration: underline;
+		}
 	}
 </style>

@@ -1,24 +1,135 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { onMount, tick } from 'svelte';
 
 	let { data } = $props();
-	let { session, userProfile, leaderboard } = $derived(data);
+	let { session, userProfile, leaderboard, leaderBoardSize, supabase } = $derived(data);
 
 	let loading = $state(false);
 	let signedIn = $derived(!!session);
 
-	const handleSignOut: SubmitFunction = () => {
-		loading = true;
-		return async ({ update }) => {
-			loading = false;
-			update();
-		};
+	let minRow: number | null = $state(null);
+	let maxRow: number | null = $state(null);
+
+	if (leaderboard) {
+		minRow = leaderboard[0].row_number;
+		maxRow = leaderboard[leaderboard.length - 1].row_number;
+	}
+
+	let listContainer: HTMLElement | undefined;
+	let topSentinel: HTMLElement | undefined;
+	let bottomSentinel: HTMLElement | undefined;
+
+	// Loading flags to prevent double-fetching
+	let loadingUp = false;
+	let loadingDown = false;
+
+	let allLoadedDown = false;
+
+	let loadLimit = 5;
+
+	console.log(leaderBoardSize);
+
+	// --- FETCH FUNCTIONS ---
+	async function loadMoreBelow() {
+		if (leaderBoardSize && maxRow) if (loadingDown || allLoadedDown || maxRow >= leaderBoardSize) return;
+		
+		loadingDown = true;
+
+		if (supabase && leaderboard && leaderBoardSize) {
+			const { data: newRows } = await supabase
+				.from('leaderboard')
+				.select('*')
+				.gt('row_number', maxRow) // Get rows larger than current max
+				.order('row_number', { ascending: true })
+				.limit(loadLimit);
+
+			if (newRows && newRows.length > 0 && maxRow) {
+				leaderboard = [...leaderboard, ...newRows];
+				maxRow += loadLimit;
+			}
+		}
+
+		loadingDown = false;
+	}
+
+	console.log(minRow);
+
+	async function loadMoreAbove() {
+		// Stop if we are already at rank 1
+		if (minRow) if (loadingUp || minRow <= 1) return;
+
+		loadingUp = true;
+
+		if (listContainer && supabase) {
+			// capture scroll height BEFORE adding content
+			const oldHeight = listContainer.scrollHeight;
+			const oldScrollTop = listContainer.scrollTop;
+
+			// Query: We want the immediate predecessors (e.g. 49, 48, 47 if min is 50)
+			// So we order DESCENDING to get the ones closest to us, then reverse them back.
+			const { data: newRows } = await supabase
+				.from('leaderboard')
+				.select('*')
+				.lt('row_number', minRow)
+				.order('row_number', { ascending: false }) // IMPORTANT: Get closest neighbors first
+				.limit(loadLimit);
+
+			if (newRows && newRows.length && leaderboard && minRow) {
+				// Reverse them so they are in 1,2,3 order before prepending
+				const orderedRows = newRows.reverse();
+				leaderboard = [...orderedRows, ...leaderboard];
+
+				minRow -= loadLimit;
+
+				// MAGIC FIX: Restore scroll position
+				await tick(); // Wait for DOM to update
+				const newHeight = listContainer.scrollHeight;
+				// Shift scroll down by the amount of content we just added
+				listContainer.scrollTop = oldScrollTop + (newHeight - oldHeight);
+			}
+		}
+		loadingUp = false;
+	}
+
+	// --- OBSERVER SETUP ---
+
+	onMount(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return;
+
+					if (entry.target === topSentinel) {
+						loadMoreAbove();
+					} else if (entry.target === bottomSentinel) {
+						loadMoreBelow();
+					}
+				});
+			},
+			{
+				root: listContainer, // Observe relative to the scrolling box
+				threshold: 0.1, // Trigger when 10% visible
+				rootMargin: '100px' // Pre-load before user actually hits the edge
+			}
+		);
+
+		if (topSentinel) observer.observe(topSentinel);
+		if (bottomSentinel) observer.observe(bottomSentinel);
+
+		return () => observer.disconnect();
+	});
+
+	const handleRefresh = async () => {
+		await invalidateAll();
 	};
 </script>
 
 <div class="page-container">
+	<section class="search-bar">
+		<input type="text" placeholder="SEARCH" />
+	</section>
+
 	{#if !signedIn}
 		<section class="hero">
 			<h1>"POINTS"</h1>
@@ -47,7 +158,23 @@
 		</section>
 	{/if}
 
-	<section class="list-container">
+	<section class="filter-section">
+		<button class="btn-text">FILTER</button>
+		<div class="filter-section-left">
+			<button class="btn-text">SEARCH</button>
+			<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
+		</div>
+	</section>
+
+	<section class="list-container" bind:this={listContainer}>
+		{#if minRow && minRow > 1}
+			<div bind:this={topSentinel}>
+				{#if loadingUp}
+					<span>Loading...</span>
+				{/if}
+			</div>
+		{/if}
+
 		<div class="rows">
 			{#each leaderboard as player}
 				{@const isMe = userProfile?.username === player.username}
@@ -71,6 +198,12 @@
 				</div>
 			{/each}
 		</div>
+
+		<div bind:this={bottomSentinel}>
+			{#if loadingDown}
+				<span>Loading...</span>
+			{/if}
+		</div>
 	</section>
 </div>
 
@@ -85,6 +218,33 @@
 		min-height: 100vh;
 		font-family: $font-stack;
 		color: var(--text-primary);
+	}
+
+	// Search BAR
+	.search-bar {
+		justify-self: center;
+		position: absolute;
+		z-index: 1;
+		background-color: white;
+
+		input {
+			width: 35em;
+			font-family: $font-stack;
+		}
+	}
+
+	// Filter Section
+	.filter-section {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		margin: $space-xs;
+
+		.filter-section-left {
+			display: flex;
+			flex-direction: row;
+			gap: 1rem;
+		}
 	}
 
 	// --- HERO SECTION (Public) ---
@@ -135,7 +295,7 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr auto;
 		gap: $space-md;
-		margin-bottom: $space-xl; // Uses NEW variable
+		// margin-bottom: $space-xl; // Uses NEW variable
 		align-items: center;
 		background-color: var(--bg-surface);
 		padding: $space-md;
@@ -168,6 +328,8 @@
 	// --- LIST CONTAINER ---
 	.list-container {
 		position: relative;
+		overflow-y: scroll;
+		height: 25rem;
 	}
 
 	// --- THE ROW ---

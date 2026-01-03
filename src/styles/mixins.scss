@@ -1,0 +1,25 @@
+@use "sass:map";
+
+// 1. Breakpoints Map
+$breakpoints: (
+  'tablet':  768px,
+  'desktop': 1024px,
+  'wide':    1280px
+);
+
+// 2. The Media Query Mixin
+@mixin respond-to($breakpoint) {
+  // Use map.has-key (namespaced)
+  @if map.has-key($breakpoints, $breakpoint) {
+    
+    // Use map.get (namespaced)
+    @media (min-width: map.get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  
+  } @else {
+    // FIX: Use map.keys (namespaced) inside the interpolation
+    @warn "Unfortunately, no value could be retrieved from `#{$breakpoint}`. "
+        + "Available breakpoints are: #{map.keys($breakpoints)}.";
+  }
+}

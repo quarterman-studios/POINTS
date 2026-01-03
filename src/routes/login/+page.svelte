@@ -82,15 +82,21 @@
 
 <style lang="scss">
 	@use '../../styles/variables' as *;
+	@use '../../styles/mixins' as *;
 
 	// Center the card on the screen (The "Void" feel)
 	.page-wrapper {
-		min-height: 100vh;
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: center;
 		background-color: var(--bg-app);
 		padding: $space-md;
+		overflow-y: hidden;
+
+		@include respond-to('tablet') {
+			min-height: 100vh;
+			align-items: center;
+		}
 	}
 
 	.login-card {
@@ -99,10 +105,14 @@
 		background-color: var(--bg-surface);
 		border: 1px solid var(--border-color);
 		border-radius: $radius-md;
-		padding: $space-xl;
+		padding: $space-lg;
 		display: flex;
 		flex-direction: column;
 		gap: $space-lg;
+
+		@include respond-to('tablet'){
+			width: 50vw;
+		}
 	}
 
 	header {

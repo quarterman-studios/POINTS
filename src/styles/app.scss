@@ -10,6 +10,8 @@
 	// Removes the blue highlight when tapping a button on Android
 	-webkit-tap-highlight-color: transparent;
 
+	box-sizing: border-box;
+
 	// outline: 1px solid rgb(0, 21, 255); // Debugging tool to see element boundaries
 }
 
@@ -23,3 +25,4 @@ body {
 }
 
 // 2. Global Button Reset (The "Pill" Look)
+

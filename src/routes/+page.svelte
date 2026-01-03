@@ -169,7 +169,7 @@
 					<span class="label">Points</span>
 					<span class="value">{userProfile?.points ?? 0}</span>
 				</div>
-
+			<div class="actions">
 				<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
 			</div>
 		</section>

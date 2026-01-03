@@ -175,11 +175,8 @@
 	{/if}
 
 	<section class="filter-section">
-		<button class="btn-text">FILTER</button>
-		<div class="filter-section-left">
-			<button class="btn-text" onclick={() => (searchDisplay = true)}>SEARCH</button>
-			<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
-		</div>
+		<button class="btn-text" onclick={() => (searchDisplay = true)}>SEARCH</button>
+		<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
 	</section>
 
 	<form class="search-bar" style={searchDisplay ? 'display: flex' : 'display: none'}>
@@ -247,8 +244,8 @@
 
 							<div class="right-section">
 								<span class="points-value">{player.points}</span>
-								{#if signedIn && !isMe}
-									<button class="btn-action">Attack</button>
+								{#if signedIn && !isMe && player.points != 0}
+									<button class="btn-action">STEAL</button>
 								{/if}
 							</div>
 						</div>
@@ -284,8 +281,8 @@
 
 						<div class="right-section">
 							<span class="points-value">{player.points}</span>
-							{#if signedIn && !isMe}
-								<button class="btn-action">Attack</button>
+							{#if signedIn && !isMe && player.points != 0}
+								<button class="btn-action">STEAL</button>
 							{/if}
 						</div>
 					</div>
@@ -340,12 +337,6 @@
 		flex-direction: row;
 		justify-content: space-between;
 		margin: $space-xs;
-
-		.filter-section-left {
-			display: flex;
-			flex-direction: row;
-			gap: 1rem;
-		}
 	}
 
 	.search-container {

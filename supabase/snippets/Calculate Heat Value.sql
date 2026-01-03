@@ -1,0 +1,1 @@
+SELECT calculate_current_heat_value(4, '2025-12-31T08:50:31.000Z');

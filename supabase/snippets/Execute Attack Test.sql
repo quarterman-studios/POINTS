@@ -1,0 +1,1 @@
+select execute_attack('ad02cc3d-a0a5-47fa-a285-198cc5a05478', '1cc8bf50-7f22-444a-8f7e-fe36263ce3e0');

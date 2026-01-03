@@ -33,20 +33,20 @@ SELECT set_has(
 -- as a non loggin user, check if you can see data
 SET local role anon;
 SELECT set_has(
-    'select id, points, rank, username from profiles',
+    'select id, points, username from profiles',
     $$VALUES 
-    ('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, 1000::numeric, 1::numeric, 'PlayerOne'),
-    ('f0ddc881-d1b0-4e2b-a346-9a32fb6845b2'::uuid, 1000::numeric, 1::numeric, 'PlayerTwo')$$,
+    ('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, 1000::numeric, 'PlayerOne'),
+    ('f0ddc881-d1b0-4e2b-a346-9a32fb6845b2'::uuid, 1000::numeric, 'PlayerTwo')$$,
     'Non loggin in users should see any part of the profiles table'
 );
 
 -- as a logged in user, can you see the data
 SET local role authenticated;
 SELECT set_has(
-    'select id, points, rank, username from profiles',
+    'select id, points, username from profiles',
     $$VALUES 
-    ('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, 1000::numeric, 1::numeric, 'PlayerOne'),
-    ('f0ddc881-d1b0-4e2b-a346-9a32fb6845b2'::uuid, 1000::numeric, 1::numeric, 'PlayerTwo')$$,
+    ('54a17113-6c72-454d-921e-3636ed7b7ac1'::uuid, 1000::numeric, 'PlayerOne'),
+    ('f0ddc881-d1b0-4e2b-a346-9a32fb6845b2'::uuid, 1000::numeric, 'PlayerTwo')$$,
     'Logged in users should see any part of the profiles table'
 );
 

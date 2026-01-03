@@ -1,3 +1,4 @@
+@use 'mixins' as *;
 // =========================================
 // 1. ROOT VARIABLES (The Dynamic Layer)
 // =========================================
@@ -135,5 +136,15 @@ $weight-bold: 700;
 		// This color-mix works great on light mode too
 		color: color-mix(in srgb, var(--text-secondary), var(--color-accent) 50%);
 		text-decoration: underline;
+	}
+}
+
+.scroll-wrapper {
+	height: 100%;
+	width: 100vw;
+	overflow-y: auto; // Enable scrolling for main content
+
+	@include respond-to('tablet') {
+		overflow: hidden;
 	}
 }

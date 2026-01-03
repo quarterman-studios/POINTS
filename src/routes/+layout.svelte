@@ -7,7 +7,9 @@
 	import type { SubmitFunction } from './$types';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { slide } from 'svelte/transition';
+	import { fade, fly, scale, slide } from 'svelte/transition';
+	import OrientationGuard from '$lib/components/OrientationGuard.svelte';
+	import { cubicOut } from 'svelte/easing';
 
 	let { data, children } = $props();
 	let { supabase, session } = $derived(data);
@@ -130,13 +132,25 @@
 
 				{#if isOpen}
 					<div class="dropdown" transition:slide={{ duration: 200 }}>
-						<ul>
-							<li>
-								<form method="post" action="?/signout" use:enhance={handleSignOut}>
-									<button class="logout">Sign Out</button>
-								</form>
-							</li>
-						</ul>
+						<div class="menu-item">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline
+									points="16 17 21 12 16 7"
+								/><line x1="21" x2="9" y1="12" y2="12" /></svg
+							>
+							<form style:width="100%" method="post" action="?/signout" use:enhance={handleSignOut}>
+								<button class="logout">Sign Out</button>
+							</form>
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -263,14 +277,29 @@
 				</button>
 
 				{#if isOpen}
-					<div class="dropdown" transition:slide={{ duration: 200, axis: 'x' }}>
-						<ul>
-							<li>
-								<form method="post" action="?/signout" use:enhance={handleSignOut}>
-									<button class="logout">Sign Out</button>
-								</form>
-							</li>
-						</ul>
+					<div
+						class="dropdown"
+						transition:scale={{ start: 0.95, duration: 150, easing: cubicOut, opacity: 0 }}
+					>
+						<div class="menu-item">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline
+									points="16 17 21 12 16 7"
+								/><line x1="21" x2="9" y1="12" y2="12" /></svg
+							>
+							<form style:width="100%" method="post" action="?/signout" use:enhance={handleSignOut}>
+								<button class="logout">Sign Out</button>
+							</form>
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -278,8 +307,13 @@
 	</aside>
 
 	<main class="main-content">
+		{#if isOpen}
+			<div class="overlay"></div>
+		{/if}
 		{@render children()}
 	</main>
+
+	<OrientationGuard />
 </div>
 
 <svelte:window onclick={handleOutsideClick} />
@@ -327,6 +361,20 @@
 		}
 	}
 
+	.overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 50;
+
+		@include respond-to('tablet') {
+			display: none;
+		}
+	}
+
 	// --- MAIN CONTENT AREA ---
 	.main-content {
 		grid-area: content; // Assign to the "content" grid slot
@@ -334,6 +382,9 @@
 		overflow: hidden; // Clip overflow so the wrapper handles scrolling
 		min-height: 0; // Crucial for nested flex/grid scrolling
 		padding: $space-md;
+		display: flex;
+		align-items: center;
+		justify-self: center;
 	}
 
 	.nav-btn {
@@ -341,7 +392,7 @@
 		border: none;
 		color: var(--text-secondary);
 		cursor: pointer;
-		padding: $space-md;
+		padding: $space-sm;
 		border-radius: $radius-sm;
 		transition: all 0.2s;
 		display: flex;
@@ -374,7 +425,7 @@
 
 		background-color: var(--bg-app);
 		border-bottom: 1px solid var(--border-color);
-		z-index: 10;
+		z-index: 100;
 
 		// MOBILE FLEX LAYOUT (Row)
 		display: flex;
@@ -451,48 +502,44 @@
 		position: absolute;
 		top: 100%; // Push it to the bottom of the button
 		right: 0; // Align to the right edge of the button
-		width: 200px; // Or generic width
+		width: 60vw; // Or generic width
 
 		background-color: var(--bg-surface, white);
 		border: 1px solid var(--border-color, #eee);
-		border-radius: 8px;
+		border-radius: $radius-md;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
 		z-index: 1000; // Ensure it floats above content
 		margin-top: 8px; // Little gap between button and menu
 		overflow: hidden; // Keeps borders clean
 
-		ul {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-		}
-
-		li {
+		.menu-item {
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+			padding: $space-sm $space-md;
 			border-bottom: 1px solid var(--border-color, #eee);
+
+			svg {
+				flex-shrink: 0;
+				opacity: 0.7;
+			}
 
 			&:last-child {
 				border-bottom: none;
 			}
-
-			&.divider {
-				height: 4px;
-				background-color: #f5f5f5;
-				border: none;
-			}
 		}
 
-		a,
 		button.logout {
-			display: block;
 			width: 100%;
-			padding: 12px 16px;
 			text-decoration: none;
 			color: var(--text-primary, #333);
 			text-align: left;
 			background: none;
 			border: none;
+			font-family: $font-stack;
 			font-size: 1rem;
+			padding-left: $space-xs;
 			cursor: pointer;
 			transition: background 0.2s;
 
@@ -548,6 +595,7 @@
 
 		.dropdown {
 			@include respond-to('tablet') {
+				width: 20vw;
 				right: auto;
 				left: 100%; // Align to the left edge of the button
 				top: 0; // Align to the top of the button

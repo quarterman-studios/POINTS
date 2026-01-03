@@ -18,59 +18,61 @@
 	};
 </script>
 
-<div class="page-container">
-	{#if !signedIn}
-		<section class="hero">
-			<h1>"POINTS"</h1>
+<div class="scroll-wrapper">
+	<div class="page-container">
+		{#if !signedIn}
+			<section class="hero">
+				<h1>"POINTS"</h1>
 
-			<button class="btn-primary btn-large" onclick={() => goto('/login')}> SIGN IN </button>
-		</section>
-	{/if}
+				<button class="btn-primary btn-large" onclick={() => goto('/login')}> SIGN IN </button>
+			</section>
+		{/if}
 
-	{#if signedIn}
-		<section class="title-section">
-			<h2>LEADERBOARD</h2>
-			<p class="label">Steal points from other players</p>
-		</section>
-		<section class="user-dashboard">
-			<div class="stat-card">
-				<span class="label">Rank</span>
-				<span class="value">#{userProfile?.rank ?? '-'}</span>
-			</div>
-			<div class="stat-card">
-				<span class="label">Points</span>
-				<span class="value">{userProfile?.points ?? 0}</span>
-			</div>
+		{#if signedIn}
+			<section class="title-section">
+				<h2>LEADERBOARD</h2>
+				<p class="label">Steal points from other players</p>
+			</section>
+			<section class="user-dashboard">
+				<div class="stat-card">
+					<span class="label">Rank</span>
+					<span class="value">#{userProfile?.rank ?? '-'}</span>
+				</div>
+				<div class="stat-card">
+					<span class="label">Points</span>
+					<span class="value">{userProfile?.points ?? 0}</span>
+				</div>
 
-			<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
-		</section>
-	{/if}
+				<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
+			</section>
+		{/if}
 
-	<section class="list-container">
-		<div class="rows">
-			{#each leaderboard as player}
-				{@const isMe = userProfile?.username === player.username}
+		<section class="list-container">
+			<div class="rows">
+				{#each leaderboard as player}
+					{@const isMe = userProfile?.username === player.username}
 
-				<div class="row {isMe ? 'current-user' : ''}">
-					<div class="left-section">
-						<span class="rank">#{player.rank}</span>
-						<div class="avatar-circle"></div>
+					<div class="row {isMe ? 'current-user' : ''} {signedIn ? 'can-hover' : ''}">
+						<div class="left-section">
+							<span class="rank">#{player.rank}</span>
+							<div class="avatar-circle"></div>
 
-						<div class="info">
-							<span class="username">{player.username}</span>
+							<div class="info">
+								<span class="username">{player.username}</span>
+							</div>
+						</div>
+
+						<div class="right-section">
+							<span class="points-value">{player.points}</span>
+							{#if signedIn && !isMe}
+								<button class="btn-action">STEAL</button>
+							{/if}
 						</div>
 					</div>
-
-					<div class="right-section">
-						<span class="points-value">{player.points}</span>
-						{#if signedIn && !isMe}
-							<button class="btn-action">STEAL</button>
-						{/if}
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
+				{/each}
+			</div>
+		</section>
+	</div>
 </div>
 
 <style lang="scss">
@@ -98,7 +100,6 @@
 	.hero {
 		text-align: center;
 		margin-bottom: $space-xl;
-		padding-top: $space-xl; // Give it breathing room on mobile
 
 		h1 {
 			font-family: var(--font-header), sans-serif;
@@ -174,6 +175,12 @@
 
 	// --- DASHBOARD (Private) ---
 	.user-dashboard {
+		position: sticky;
+		position: -webkit-sticky; // For Safari support
+
+		top: 0;
+
+		z-index: 10; // Ensure it stays above other content
 		// MOBILE DEFAULT: Stack vertically
 		display: flex;
 		flex-direction: row;
@@ -219,8 +226,11 @@
 	// --- LIST CONTAINER ---
 	.list-container {
 		position: relative;
-		height: 55vh; // Fixed height for scrollable area
-		overflow-y: auto;
+
+		@include respond-to('tablet') {
+			height: 55vh; // Fixed height for scrollable area
+			overflow-y: auto;
+		}
 	}
 
 	// --- THE ROW ---
@@ -235,13 +245,15 @@
 		gap: $space-sm; // Ensure space between left/right sections
 		transition: all 0.2s;
 
-		&:hover {
-			background-color: var(--bg-surface-hover);
-		}
-
 		&.current-user {
 			border-left: 2px solid var(--color-accent);
 			background: linear-gradient(90deg, rgba(var(--color-accent), 0.05) 0%, transparent 100%);
+		}
+	}
+
+	.can-hover {
+		&:hover {
+			background-color: var(--bg-surface-hover);
 		}
 	}
 

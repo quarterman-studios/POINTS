@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		const { data: leaderboard } = await supabase
 			.from('leaderboard')
 			.select('username, points, rank, row_number')
-			.order('points', { ascending: false })
+			.order('row_number', { ascending: true })
 			.limit(leaderboardLimit + 1); // +1 to fill the space of the user
 
 		return {
@@ -59,7 +59,8 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 		session,
 		userProfile,
 		leaderboard, 
-		leaderBoardSize
+		leaderBoardSize,
+		leaderboardLimit, 
 	};
 };
 

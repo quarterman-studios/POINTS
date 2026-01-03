@@ -3,37 +3,39 @@
 	import { onMount, tick } from 'svelte';
 
 	let { data } = $props();
-	let { session, userProfile, leaderboard, leaderBoardSize, supabase } = $derived(data);
+	let { session, leaderboard, userProfile, leaderBoardSize, supabase } = $derived(data);
 
-	let loading = $state(false);
+	// let loading = $state(false);
 	let signedIn = $derived(!!session);
 
 	let minRow: number | null = $state(null);
 	let maxRow: number | null = $state(null);
 
-	if (leaderboard) {
-		minRow = leaderboard[0].row_number;
-		maxRow = leaderboard[leaderboard.length - 1].row_number;
-	}
+	let searchDisplay: boolean = $state(false);
+	let searchInput: HTMLInputElement | undefined = $state();
+	let searchResults: any[] = $state([]);
 
-	let listContainer: HTMLElement | undefined;
-	let topSentinel: HTMLElement | undefined;
-	let bottomSentinel: HTMLElement | undefined;
+	let listContainer: HTMLElement | undefined = $state();
+	let topSentinel: HTMLElement | undefined = $state();
+	let bottomSentinel: HTMLElement | undefined = $state();
 
 	// Loading flags to prevent double-fetching
-	let loadingUp = false;
-	let loadingDown = false;
+	let loadingUp = $state(false);
+	let loadingDown = $state(false);
 
-	let allLoadedDown = false;
+	$effect(() => {
+		if (leaderboard) {
+			minRow = leaderboard[0].row_number;
+			maxRow = leaderboard[leaderboard.length - 1].row_number;
+		}
+	});
 
 	let loadLimit = 5;
 
-	console.log(leaderBoardSize);
-
 	// --- FETCH FUNCTIONS ---
 	async function loadMoreBelow() {
-		if (leaderBoardSize && maxRow) if (loadingDown || allLoadedDown || maxRow >= leaderBoardSize) return;
-		
+		if (leaderBoardSize && maxRow) if (loadingDown || maxRow >= leaderBoardSize) return;
+
 		loadingDown = true;
 
 		if (supabase && leaderboard && leaderBoardSize) {
@@ -52,8 +54,6 @@
 
 		loadingDown = false;
 	}
-
-	console.log(minRow);
 
 	async function loadMoreAbove() {
 		// Stop if we are already at rank 1
@@ -92,6 +92,26 @@
 		loadingUp = false;
 	}
 
+	const findUser = async () => {
+		if (!supabase) return;
+
+		const usernameInput = (document.querySelector('.search-bar input') as HTMLInputElement).value;
+
+		const { data: userData, error } = await supabase
+			.from('leaderboard')
+			.select('*')
+			.ilike('username', `%${usernameInput}%`)
+			.order('row_number', { ascending: true })
+			.limit(20);
+
+		if (error || !userData) {
+			alert('User not found');
+			return;
+		}
+
+		searchResults = userData;
+	};
+
 	// --- OBSERVER SETUP ---
 
 	onMount(() => {
@@ -121,15 +141,11 @@
 	});
 
 	const handleRefresh = async () => {
-		await invalidateAll();
+		window.location.reload();
 	};
 </script>
 
 <div class="page-container">
-	<section class="search-bar">
-		<input type="text" placeholder="SEARCH" />
-	</section>
-
 	{#if !signedIn}
 		<section class="hero">
 			<h1>"POINTS"</h1>
@@ -161,50 +177,130 @@
 	<section class="filter-section">
 		<button class="btn-text">FILTER</button>
 		<div class="filter-section-left">
-			<button class="btn-text">SEARCH</button>
+			<button class="btn-text" onclick={() => (searchDisplay = true)}>SEARCH</button>
 			<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
 		</div>
 	</section>
 
-	<section class="list-container" bind:this={listContainer}>
-		{#if minRow && minRow > 1}
-			<div bind:this={topSentinel}>
-				{#if loadingUp}
-					<span>Loading...</span>
-				{/if}
-			</div>
-		{/if}
+	<form class="search-bar" style={searchDisplay ? 'display: flex' : 'display: none'}>
+		<input type="text" placeholder="SEARCH" bind:value={searchInput} />
+		<button aria-label="submit" class="btn-text" onclick={findUser}>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M20 6L9 17l-5-5" />
+			</svg>
+		</button>
+		<button
+			aria-label="cross"
+			class="btn-text"
+			onclick={() => {
+				searchDisplay = false;
+				searchInput = undefined;
+				searchResults = [];
+			}}
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M18 6L6 18M6 6l12 12" />
+			</svg></button
+		>
+	</form>
 
-		<div class="rows">
-			{#each leaderboard as player}
-				{@const isMe = userProfile?.username === player.username}
+	{#if searchDisplay}
+		<section class="search-container">
+			{#if searchResults.length === 0}
+				<div style="text-align: center; margin-top: 2rem;">
+					<p>No results found.</p>
+				</div>
+			{:else}
+				<div class="rows">
+					{#each searchResults as player}
+						{@const isMe = userProfile?.username === player.username}
 
-				<div class="row {isMe ? 'current-user' : ''}">
-					<div class="left-section">
-						<span class="rank">#{player.rank}</span>
-						<div class="avatar-circle"></div>
+						<div class="row {isMe ? 'current-user' : ''}">
+							<div class="left-section">
+								<span class="rank">#{player.rank}</span>
+								<div class="avatar-circle"></div>
 
-						<div class="info">
-							<span class="username">{player.username}</span>
+								<div class="info">
+									<span class="username">{player.username}</span>
+								</div>
+							</div>
+
+							<div class="right-section">
+								<span class="points-value">{player.points}</span>
+								{#if signedIn && !isMe}
+									<button class="btn-action">Attack</button>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</section>
+	{/if}
+
+	{#if !searchDisplay}
+		<section class="list-container" bind:this={listContainer}>
+			{#if minRow && minRow > 1 && !searchDisplay}
+				<div bind:this={topSentinel}>
+					{#if loadingUp}
+						<span>Loading...</span>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="rows">
+				{#each leaderboard as player}
+					{@const isMe = userProfile?.username === player.username}
+
+					<div class="row {isMe ? 'current-user' : ''}">
+						<div class="left-section">
+							<span class="rank">#{player.rank}</span>
+							<div class="avatar-circle"></div>
+
+							<div class="info">
+								<span class="username">{player.username}</span>
+							</div>
+						</div>
+
+						<div class="right-section">
+							<span class="points-value">{player.points}</span>
+							{#if signedIn && !isMe}
+								<button class="btn-action">Attack</button>
+							{/if}
 						</div>
 					</div>
+				{/each}
+			</div>
 
-					<div class="right-section">
-						<span class="points-value">{player.points}</span>
-						{#if signedIn && !isMe}
-							<button class="btn-action">Attack</button>
-						{/if}
-					</div>
+			{#if maxRow && leaderBoardSize && maxRow < leaderBoardSize && !searchDisplay}
+				<div bind:this={bottomSentinel}>
+					{#if loadingDown}
+						<span>Loading...</span>
+					{/if}
 				</div>
-			{/each}
-		</div>
-
-		<div bind:this={bottomSentinel}>
-			{#if loadingDown}
-				<span>Loading...</span>
 			{/if}
-		</div>
-	</section>
+		</section>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -222,14 +318,19 @@
 
 	// Search BAR
 	.search-bar {
-		justify-self: center;
-		position: absolute;
-		z-index: 1;
+		justify-content: center;
+		align-items: center;
 		background-color: white;
+		margin: $space-sm;
 
 		input {
-			width: 35em;
+			width: 60vw;
 			font-family: $font-stack;
+		}
+
+		button {
+			display: flex;
+			flex: 1;
 		}
 	}
 
@@ -245,6 +346,11 @@
 			flex-direction: row;
 			gap: 1rem;
 		}
+	}
+
+	.search-container {
+		overflow-y: scroll;
+		height: 55vh;
 	}
 
 	// --- HERO SECTION (Public) ---

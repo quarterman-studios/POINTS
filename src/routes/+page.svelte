@@ -169,71 +169,108 @@
 					<span class="label">Points</span>
 					<span class="value">{userProfile?.points ?? 0}</span>
 				</div>
-			<div class="actions">
-				<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
-			</div>
-		</section>
-	{/if}
-
-	<section class="filter-section">
-		<button class="btn-text" onclick={() => (searchDisplay = true)}>SEARCH</button>
-		<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
-	</section>
-
-	<form class="search-bar" style={searchDisplay ? 'display: flex' : 'display: none'}>
-		<input type="text" placeholder="SEARCH" bind:value={searchInput} />
-		<button aria-label="submit" class="btn-text" onclick={findUser}>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<path d="M20 6L9 17l-5-5" />
-			</svg>
-		</button>
-		<button
-			aria-label="cross"
-			class="btn-text"
-			onclick={() => {
-				searchDisplay = false;
-				searchInput = undefined;
-				searchResults = [];
-			}}
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<path d="M18 6L6 18M6 6l12 12" />
-			</svg></button
-		>
-	</form>
-
-	{#if searchDisplay}
-		<section class="search-container">
-			{#if searchResults.length === 0}
-				<div style="text-align: center; margin-top: 2rem;">
-					<p>No results found.</p>
+				<div class="actions">
+					<button class="btn-text" onclick={() => goto('/profile')}>Profile</button>
 				</div>
-			{:else}
+			</section>
+		{/if}
+
+		<section class="filter-section">
+			<button class="btn-text" onclick={() => (searchDisplay = true)}>SEARCH</button>
+			<button class="btn-text" onclick={handleRefresh}>REFRESH</button>
+		</section>
+
+		<form class="search-bar" style={searchDisplay ? 'display: flex' : 'display: none'}>
+			<input type="text" placeholder="SEARCH" bind:value={searchInput} />
+			<button aria-label="submit" class="btn-text" onclick={findUser}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M20 6L9 17l-5-5" />
+				</svg>
+			</button>
+			<button
+				aria-label="cross"
+				class="btn-text"
+				onclick={() => {
+					searchDisplay = false;
+					searchInput = undefined;
+					searchResults = [];
+				}}
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M18 6L6 18M6 6l12 12" />
+				</svg></button
+			>
+		</form>
+
+		{#if searchDisplay}
+			<section class="search-container">
+				{#if searchResults.length === 0}
+					<div style="text-align: center; margin-top: 2rem;">
+						<p>No results found.</p>
+					</div>
+				{:else}
+					<div class="rows">
+						{#each searchResults as player}
+							{@const isMe = userProfile?.username === player.username}
+
+							<div class="row {isMe ? 'current-user' : ''}">
+								<div class="left-section">
+									<span class="rank">#{player.rank}</span>
+									<div class="avatar-circle"></div>
+
+									<div class="info">
+										<span class="username">{player.username}</span>
+									</div>
+								</div>
+
+								<div class="right-section">
+									<span class="points-value">{player.points}</span>
+									{#if signedIn && !isMe && player.points != 0}
+										<button class="btn-action">STEAL</button>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</section>
+		{/if}
+
+		{#if !searchDisplay}
+			<section class="list-container" bind:this={listContainer}>
+				{#if minRow && minRow > 1 && !searchDisplay}
+					<div bind:this={topSentinel}>
+						{#if loadingUp}
+							<span>Loading...</span>
+						{/if}
+					</div>
+				{/if}
+
 				<div class="rows">
-					{#each searchResults as player}
+					{#each leaderboard as player}
 						{@const isMe = userProfile?.username === player.username}
 
-						<div class="row {isMe ? 'current-user' : ''}">
+						<div class="row {isMe ? 'current-user' : ''} {signedIn ? 'can-hover' : ''}">
 							<div class="left-section">
 								<span class="rank">#{player.rank}</span>
 								<div class="avatar-circle"></div>
@@ -252,53 +289,17 @@
 						</div>
 					{/each}
 				</div>
-			{/if}
-		</section>
-	{/if}
 
-	{#if !searchDisplay}
-		<section class="list-container" bind:this={listContainer}>
-			{#if minRow && minRow > 1 && !searchDisplay}
-				<div bind:this={topSentinel}>
-					{#if loadingUp}
-						<span>Loading...</span>
-					{/if}
-				</div>
-			{/if}
-
-			<div class="rows">
-				{#each leaderboard as player}
-					{@const isMe = userProfile?.username === player.username}
-
-					<div class="row {isMe ? 'current-user' : ''} {signedIn ? 'can-hover' : ''}">
-						<div class="left-section">
-							<span class="rank">#{player.rank}</span>
-							<div class="avatar-circle"></div>
-
-							<div class="info">
-								<span class="username">{player.username}</span>
-							</div>
-						</div>
-
-						<div class="right-section">
-							<span class="points-value">{player.points}</span>
-							{#if signedIn && !isMe && player.points != 0}
-								<button class="btn-action">STEAL</button>
-							{/if}
-						</div>
+				{#if maxRow && leaderBoardSize && maxRow < leaderBoardSize && !searchDisplay}
+					<div bind:this={bottomSentinel}>
+						{#if loadingDown}
+							<span>Loading...</span>
+						{/if}
 					</div>
-				{/each}
-			</div>
-
-			{#if maxRow && leaderBoardSize && maxRow < leaderBoardSize && !searchDisplay}
-				<div bind:this={bottomSentinel}>
-					{#if loadingDown}
-						<span>Loading...</span>
-					{/if}
-				</div>
-			{/if}
-		</section>
-	{/if}
+				{/if}
+			</section>
+		{/if}
+	</div>
 </div>
 
 <style lang="scss">
